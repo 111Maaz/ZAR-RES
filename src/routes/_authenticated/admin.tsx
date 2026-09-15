@@ -8,6 +8,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  BellRing,
   ClipboardList,
   History,
   LayoutDashboard,
@@ -15,6 +16,7 @@ import {
   LogOut,
   Settings,
   Table2,
+  UserCog,
   UtensilsCrossed,
 } from "lucide-react";
 
@@ -44,10 +46,12 @@ export const Route = createFileRoute("/_authenticated/admin")({
 const NAV = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/orders", label: "Orders", icon: ClipboardList, exact: false },
+  { to: "/admin/waiter-calls", label: "Waiter Calls", icon: BellRing, exact: false },
   { to: "/admin/tables", label: "Tables", icon: Table2, exact: false },
   { to: "/admin/menu", label: "Menu", icon: UtensilsCrossed, exact: false },
   { to: "/admin/categories", label: "Categories", icon: ListTree, exact: false },
   { to: "/admin/history", label: "History", icon: History, exact: false },
+  { to: "/admin/profile", label: "Profile", icon: UserCog, exact: false },
   { to: "/admin/settings", label: "Settings", icon: Settings, exact: false },
 ] as const;
 

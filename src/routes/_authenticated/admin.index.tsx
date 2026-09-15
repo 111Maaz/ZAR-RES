@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { fetchOrderQueue, fetchTables } from "@/lib/admin-data";
+import { fetchOrderQueue, fetchTables, fetchWaiterCalls } from "@/lib/admin-data";
 import { clockTime, money } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,7 @@ function Dashboard() {
 
   const tables = useQuery({ queryKey: ["admin-tables"], queryFn: fetchTables });
   const queue = useQuery({ queryKey: ["admin-queue"], queryFn: fetchOrderQueue });
+  const calls = useQuery({ queryKey: ["waiter-calls"], queryFn: fetchWaiterCalls });
 
   useEffect(() => {
     const channel = supabase
@@ -32,6 +33,9 @@ function Dashboard() {
           void queryClient.invalidateQueries({ queryKey: ["admin-queue"] });
         },
       )
+      .on("postgres_changes", { event: "*", schema: "public", table: "waiter_calls" }, () => {
+        void queryClient.invalidateQueries({ queryKey: ["waiter-calls"] });
+      })
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
@@ -40,11 +44,12 @@ function Dashboard() {
 
   const rows = tables.data ?? [];
   const batches = queue.data ?? [];
+  const waiterCalls = calls.data ?? [];
   const active = rows.filter((t) => t.session);
   const stats = [
     { label: "Active tables", value: active.length },
-    { label: "Available tables", value: rows.length - active.length },
     { label: "New orders", value: batches.filter((b) => b.status === "new").length },
+    { label: "Waiter calls", value: waiterCalls.filter((c) => c.status !== "resolved").length },
     { label: "Preparing", value: batches.filter((b) => b.status === "preparing").length },
     { label: "Ready", value: batches.filter((b) => b.status === "ready").length },
     {

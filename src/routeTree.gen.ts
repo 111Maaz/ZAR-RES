@@ -19,8 +19,10 @@ import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminHistoryRouteImport } from './routes/_authenticated/admin.history'
 import { Route as AuthenticatedAdminMenuRouteImport } from './routes/_authenticated/admin.menu'
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin.orders'
+import { Route as AuthenticatedAdminProfileRouteImport } from './routes/_authenticated/admin.profile'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminTablesRouteImport } from './routes/_authenticated/admin.tables'
+import { Route as AuthenticatedAdminWaiterCallsRouteImport } from './routes/_authenticated/admin.waiter-calls'
 import { Route as AuthenticatedAdminTableTableIdRouteImport } from './routes/_authenticated/admin.table.$tableId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -75,6 +77,12 @@ const AuthenticatedAdminOrdersRoute =
     path: '/orders',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminProfileRoute =
+  AuthenticatedAdminProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
     id: '/settings',
@@ -85,6 +93,12 @@ const AuthenticatedAdminTablesRoute =
   AuthenticatedAdminTablesRouteImport.update({
     id: '/tables',
     path: '/tables',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminWaiterCallsRoute =
+  AuthenticatedAdminWaiterCallsRouteImport.update({
+    id: '/waiter-calls',
+    path: '/waiter-calls',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminTableTableIdRoute =
@@ -103,8 +117,10 @@ export interface FileRoutesByFullPath {
   '/admin/history': typeof AuthenticatedAdminHistoryRoute
   '/admin/menu': typeof AuthenticatedAdminMenuRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
+  '/admin/profile': typeof AuthenticatedAdminProfileRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tables': typeof AuthenticatedAdminTablesRoute
+  '/admin/waiter-calls': typeof AuthenticatedAdminWaiterCallsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/table/$tableId': typeof AuthenticatedAdminTableTableIdRoute
 }
@@ -116,8 +132,10 @@ export interface FileRoutesByTo {
   '/admin/history': typeof AuthenticatedAdminHistoryRoute
   '/admin/menu': typeof AuthenticatedAdminMenuRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
+  '/admin/profile': typeof AuthenticatedAdminProfileRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tables': typeof AuthenticatedAdminTablesRoute
+  '/admin/waiter-calls': typeof AuthenticatedAdminWaiterCallsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/table/$tableId': typeof AuthenticatedAdminTableTableIdRoute
 }
@@ -132,8 +150,10 @@ export interface FileRoutesById {
   '/_authenticated/admin/history': typeof AuthenticatedAdminHistoryRoute
   '/_authenticated/admin/menu': typeof AuthenticatedAdminMenuRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
+  '/_authenticated/admin/profile': typeof AuthenticatedAdminProfileRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/tables': typeof AuthenticatedAdminTablesRoute
+  '/_authenticated/admin/waiter-calls': typeof AuthenticatedAdminWaiterCallsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/table/$tableId': typeof AuthenticatedAdminTableTableIdRoute
 }
@@ -148,8 +168,10 @@ export interface FileRouteTypes {
     | '/admin/history'
     | '/admin/menu'
     | '/admin/orders'
+    | '/admin/profile'
     | '/admin/settings'
     | '/admin/tables'
+    | '/admin/waiter-calls'
     | '/admin/'
     | '/admin/table/$tableId'
   fileRoutesByTo: FileRoutesByTo
@@ -161,8 +183,10 @@ export interface FileRouteTypes {
     | '/admin/history'
     | '/admin/menu'
     | '/admin/orders'
+    | '/admin/profile'
     | '/admin/settings'
     | '/admin/tables'
+    | '/admin/waiter-calls'
     | '/admin'
     | '/admin/table/$tableId'
   id:
@@ -176,8 +200,10 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/history'
     | '/_authenticated/admin/menu'
     | '/_authenticated/admin/orders'
+    | '/_authenticated/admin/profile'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/tables'
+    | '/_authenticated/admin/waiter-calls'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/table/$tableId'
   fileRoutesById: FileRoutesById
@@ -261,6 +287,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminOrdersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/profile': {
+      id: '/_authenticated/admin/profile'
+      path: '/profile'
+      fullPath: '/admin/profile'
+      preLoaderRoute: typeof AuthenticatedAdminProfileRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/settings': {
       id: '/_authenticated/admin/settings'
       path: '/settings'
@@ -273,6 +306,13 @@ declare module '@tanstack/react-router' {
       path: '/tables'
       fullPath: '/admin/tables'
       preLoaderRoute: typeof AuthenticatedAdminTablesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/waiter-calls': {
+      id: '/_authenticated/admin/waiter-calls'
+      path: '/waiter-calls'
+      fullPath: '/admin/waiter-calls'
+      preLoaderRoute: typeof AuthenticatedAdminWaiterCallsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/table/$tableId': {
@@ -290,8 +330,10 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminHistoryRoute: typeof AuthenticatedAdminHistoryRoute
   AuthenticatedAdminMenuRoute: typeof AuthenticatedAdminMenuRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
+  AuthenticatedAdminProfileRoute: typeof AuthenticatedAdminProfileRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTablesRoute: typeof AuthenticatedAdminTablesRoute
+  AuthenticatedAdminWaiterCallsRoute: typeof AuthenticatedAdminWaiterCallsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminTableTableIdRoute: typeof AuthenticatedAdminTableTableIdRoute
 }
@@ -301,8 +343,10 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminHistoryRoute: AuthenticatedAdminHistoryRoute,
   AuthenticatedAdminMenuRoute: AuthenticatedAdminMenuRoute,
   AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,
+  AuthenticatedAdminProfileRoute: AuthenticatedAdminProfileRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTablesRoute: AuthenticatedAdminTablesRoute,
+  AuthenticatedAdminWaiterCallsRoute: AuthenticatedAdminWaiterCallsRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedAdminTableTableIdRoute: AuthenticatedAdminTableTableIdRoute,
 }

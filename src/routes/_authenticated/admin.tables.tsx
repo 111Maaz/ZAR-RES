@@ -136,7 +136,7 @@ function TablesPage() {
             >
               <div className="min-w-0">
                 <p className="truncate font-display text-lg">{t.label}</p>
-                <p className="truncate text-xs text-muted-foreground">/menu/{t.slug}</p>
+                <p className="truncate text-xs text-muted-foreground">Permanent QR ready</p>
                 {t.session ? (
                   <p className="mt-1 text-xs text-primary">
                     Active · {money(t.session.total)} · {t.session.orders} orders
@@ -204,7 +204,7 @@ function QrDialog({ table, onClose }: { table: AdminTableRow; onClose: () => voi
   const [url, setUrl] = useState("");
 
   useEffect(() => {
-    const target = `${window.location.origin}/menu/${table.slug}`;
+    const target = `${window.location.origin}/menu/${table.qr_token}`;
     setUrl(target);
     QRCode.toDataURL(target, {
       width: 900,
@@ -231,6 +231,23 @@ function QrDialog({ table, onClose }: { table: AdminTableRow; onClose: () => voi
     win.print();
   }
 
+  async function share() {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `${table.label} QR`, text: `Order at ${table.label}`, url });
+        return;
+      } catch {
+        return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("QR link copied");
+    } catch {
+      toast.error("Unable to copy the QR link on this device.");
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/85 p-5">
       <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 text-center">
@@ -246,7 +263,7 @@ function QrDialog({ table, onClose }: { table: AdminTableRow; onClose: () => voi
           )}
         </div>
         <p className="mt-3 break-all text-xs text-muted-foreground">{url}</p>
-        <div className="mt-5 grid gap-2 sm:grid-cols-2">
+        <div className="mt-5 grid gap-2 sm:grid-cols-3">
           <button
             onClick={print}
             className="min-h-11 rounded-lg bg-primary text-sm font-medium text-primary-foreground"
@@ -260,6 +277,9 @@ function QrDialog({ table, onClose }: { table: AdminTableRow; onClose: () => voi
           >
             Download
           </a>
+          <button onClick={share} className="min-h-11 rounded-lg border border-border text-sm">
+            Share
+          </button>
         </div>
         <button onClick={onClose} className="mt-3 w-full text-xs text-muted-foreground">
           Close

@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
+  BellRing,
   ChevronRight,
   Circle,
   Loader2,
@@ -20,6 +21,7 @@ import { toast } from "sonner";
 import {
   getPublicMenu,
   getTableContext,
+  callWaiter,
   type MenuItem,
   type TableContext,
 } from "@/lib/ordering.functions";
@@ -112,12 +114,13 @@ function Tag({ label }: { label: string }) {
 }
 
 function CustomerMenu() {
-  const { table: slug } = Route.useParams();
+  const { table: token } = Route.useParams();
   const queryClient = useQueryClient();
   const fetchMenu = useServerFn(getPublicMenu);
   const fetchContext = useServerFn(getTableContext);
   const submitOrder = useServerFn(placeOrder);
-  const cart = useCart(slug);
+  const sendWaiterCall = useServerFn(callWaiter);
+  const cart = useCart(token);
 
   const [view, setView] = useState<"menu" | "orders">("menu");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -132,8 +135,8 @@ function CustomerMenu() {
   });
 
   const contextQuery = useQuery<TableContext>({
-    queryKey: ["table-context", slug],
-    queryFn: () => fetchContext({ data: { slug } }),
+    queryKey: ["table-context", token],
+    queryFn: () => fetchContext({ data: { token } }),
     refetchInterval: 10_000,
     retry: false,
   });
@@ -162,7 +165,7 @@ function CustomerMenu() {
     mutationFn: () =>
       submitOrder({
         data: {
-          slug,
+          token,
           items: cart.lines.map((l) => ({ menu_item_id: l.id, quantity: l.quantity })),
         },
       }),
@@ -170,7 +173,7 @@ function CustomerMenu() {
       cart.clear();
       setCartOpen(false);
       setConfirmed({ code: result.code, label: result.table_label });
-      void queryClient.invalidateQueries({ queryKey: ["table-context", slug] });
+      void queryClient.invalidateQueries({ queryKey: ["table-context", token] });
     },
     onError: (error: Error) => {
       const message = error.message ?? "";
@@ -184,6 +187,15 @@ function CustomerMenu() {
         toast.error("We couldn't send your order. Please check your connection and retry.");
       }
     },
+  });
+
+  const waiterMutation = useMutation({
+    mutationFn: () => sendWaiterCall({ data: { token } }),
+    onSuccess: (result) => {
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate([700, 250, 700]);
+      toast.success(result.reused ? "Your waiter call is already with the team." : "Waiter called — we’ll be right over.");
+    },
+    onError: () => toast.error("We couldn’t call a waiter. Please try again or ask a team member."),
   });
 
   if (contextQuery.isError) {
@@ -504,6 +516,16 @@ function CustomerMenu() {
           </button>
         </div>
       ) : null}
+
+      <button
+        onClick={() => waiterMutation.mutate()}
+        disabled={waiterMutation.isPending || loading}
+        className="fixed bottom-24 right-4 z-30 flex min-h-12 items-center gap-2 rounded-full border border-primary/70 bg-card px-4 text-xs font-medium text-primary shadow-lg disabled:opacity-70"
+        aria-label="Call waiter"
+      >
+        {waiterMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <BellRing className="h-4 w-4" />}
+        Call waiter
+      </button>
 
       {/* Item detail */}
       {detail ? (

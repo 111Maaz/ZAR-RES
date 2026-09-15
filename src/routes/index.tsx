@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { QrCode, UtensilsCrossed } from "lucide-react";
+import { QrCode } from "lucide-react";
 
 import { getPublicMenu } from "@/lib/ordering.functions";
 
@@ -64,12 +64,6 @@ function Landing() {
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-7 text-sm font-medium text-primary-foreground"
             >
               <QrCode className="h-4 w-4" /> Try the table menu
-            </Link>
-            <Link
-              to="/admin"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-border px-7 text-sm"
-            >
-              <UtensilsCrossed className="h-4 w-4" /> Staff dashboard
             </Link>
           </div>
           <p className="mt-4 text-xs text-muted-foreground">

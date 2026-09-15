@@ -25,6 +25,7 @@ export interface AdminTableRow {
   id: string;
   label: string;
   slug: string;
+  qr_token: string;
   sort_order: number;
   session: {
     id: string;
@@ -99,7 +100,7 @@ export async function fetchTables(): Promise<AdminTableRow[]> {
   const tables = await fail(
     await supabase
       .from("restaurant_tables")
-      .select("id, label, slug, sort_order")
+      .select("id, label, slug, qr_token, sort_order")
       .order("sort_order"),
   );
   const sessions = await fail(
@@ -253,18 +254,40 @@ export async function updateBatchStatus(batchId: string, status: string) {
 
 export async function closeSession(
   sessionId: string,
-  finalTotal: number,
+  _finalTotal: number,
   paymentMethod: string | null,
 ) {
-  const { error } = await supabase
-    .from("table_sessions")
-    .update({
-      status: "closed",
-      closed_at: new Date().toISOString(),
-      final_total: finalTotal,
-      payment_method: paymentMethod,
-    })
-    .eq("id", sessionId);
+  const { error } = await (supabase as any).rpc("close_table_session", {
+    p_session_id: sessionId,
+    p_payment_method: paymentMethod,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export interface WaiterCall {
+  id: string;
+  status: "new" | "acknowledged" | "resolved";
+  created_at: string;
+  table_label: string;
+}
+
+export async function fetchWaiterCalls(): Promise<WaiterCall[]> {
+  const { data, error } = await (supabase as any)
+    .from("waiter_calls")
+    .select("id, status, created_at, restaurant_tables(label)")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((call: any) => ({
+    id: call.id, status: call.status, created_at: call.created_at,
+    table_label: call.restaurant_tables?.label ?? "Table",
+  }));
+}
+
+export async function updateWaiterCall(id: string, status: WaiterCall["status"]) {
+  const timestamps = status === "acknowledged" ? { acknowledged_at: new Date().toISOString() }
+    : status === "resolved" ? { resolved_at: new Date().toISOString() } : {};
+  const { error } = await (supabase as any).from("waiter_calls").update({ status, ...timestamps }).eq("id", id);
   if (error) throw new Error(error.message);
 }
 

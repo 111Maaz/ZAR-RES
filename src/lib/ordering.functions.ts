@@ -69,16 +69,12 @@ export interface TableSessionView {
 }
 
 export interface TableContext {
-  table: { id: string; label: string; slug: string };
+  table: { id: string; label: string };
   settings: RestaurantSettings | null;
   session: TableSessionView | null;
 }
 
-const slugSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .regex(/^[a-z0-9-]{1,40}$/, "Invalid table code");
+const qrTokenSchema = z.string().uuid("Invalid table code");
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -187,13 +183,13 @@ async function buildSessionView(
 
 /** Table context for a scanned QR: the table plus its active session, if any. */
 export const getTableContext = createServerFn({ method: "GET" })
-  .inputValidator((data: { slug: string }) => ({ slug: slugSchema.parse(data.slug) }))
+  .inputValidator((data: { token: string }) => ({ token: qrTokenSchema.parse(data.token) }))
   .handler(async ({ data }): Promise<TableContext> => {
     const db = await admin();
     const { data: table } = await db
       .from("restaurant_tables")
-      .select("id, label, slug")
-      .eq("slug", data.slug)
+      .select("id, label")
+      .eq("qr_token", data.token)
       .maybeSingle();
 
     if (!table) throw new Error("TABLE_NOT_FOUND");
@@ -216,7 +212,7 @@ export const getTableContext = createServerFn({ method: "GET" })
   });
 
 const placeOrderSchema = z.object({
-  slug: slugSchema,
+  token: qrTokenSchema,
   items: z
     .array(
       z.object({
@@ -236,111 +232,28 @@ export const placeOrder = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => placeOrderSchema.parse(data))
   .handler(async ({ data }) => {
     const db = await admin();
-
-    const { data: table } = await db
-      .from("restaurant_tables")
-      .select("id, label, slug")
-      .eq("slug", data.slug)
-      .maybeSingle();
-    if (!table) throw new Error("TABLE_NOT_FOUND");
-
-    const { data: menuRows } = await db
-      .from("menu_items")
-      .select("id, name, price, is_available")
-      .in(
-        "id",
-        data.items.map((i) => i.menu_item_id),
-      );
-
-    const byId = new Map((menuRows ?? []).map((m) => [m.id, m]));
-    const unavailable: string[] = [];
-    for (const line of data.items) {
-      const item = byId.get(line.menu_item_id);
-      if (!item) throw new Error("ITEM_MISSING");
-      if (!item.is_available) unavailable.push(item.name);
-    }
-    if (unavailable.length) {
-      throw new Error(`UNAVAILABLE:${unavailable.join(", ")}`);
-    }
-
-    // Existing active session, or open a new one (unique index guards races).
-    let session: { id: string; session_no: number; opened_at: string } | null = null;
-    const existing = await db
-      .from("table_sessions")
-      .select("id, session_no, opened_at")
-      .eq("table_id", table.id)
-      .eq("status", "active")
-      .maybeSingle();
-    session = existing.data ?? null;
-
-    if (!session) {
-      const created = await db
-        .from("table_sessions")
-        .insert({ table_id: table.id })
-        .select("id, session_no, opened_at")
-        .single();
-      if (created.error) {
-        const retry = await db
-          .from("table_sessions")
-          .select("id, session_no, opened_at")
-          .eq("table_id", table.id)
-          .eq("status", "active")
-          .maybeSingle();
-        if (!retry.data) throw new Error("SESSION_FAILED");
-        session = retry.data;
-      } else {
-        session = created.data;
-      }
-    }
-
-    const { data: lastBatch } = await db
-      .from("order_batches")
-      .select("batch_no")
-      .eq("session_id", session.id)
-      .order("batch_no", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const batchNo = (lastBatch?.batch_no ?? 0) + 1;
-    const batch = await db
-      .from("order_batches")
-      .insert({
-        session_id: session.id,
-        table_id: table.id,
-        batch_no: batchNo,
-        status: "new",
-      })
-      .select("id, batch_no, created_at")
-      .single();
-    if (batch.error) throw new Error("ORDER_FAILED");
-
-    const rows = data.items.map((line) => {
-      const item = byId.get(line.menu_item_id)!;
-      const price = Number(item.price);
-      return {
-        batch_id: batch.data.id,
-        menu_item_id: item.id,
-        name_snapshot: item.name,
-        price_snapshot: price,
-        quantity: line.quantity,
-        subtotal: price * line.quantity,
-      };
+    const { data: rows, error } = await (db as any).rpc("place_table_order", {
+      p_qr_token: data.token,
+      p_items: data.items,
     });
-
-    const inserted = await db.from("order_items").insert(rows);
-    if (inserted.error) {
-      await db.from("order_batches").delete().eq("id", batch.data.id);
-      throw new Error("ORDER_FAILED");
-    }
-
+    if (error || !rows?.[0]) throw new Error(error?.message ?? "ORDER_FAILED");
+    const result = rows[0];
     return {
-      table_label: table.label,
-      session_no: session.session_no,
-      batch_no: batch.data.batch_no,
-      code: `${session.session_no}-${batch.data.batch_no}`,
-      created_at: batch.data.created_at,
-      total: rows.reduce((s, r) => s + r.subtotal, 0),
+      table_label: result.table_label,
+      session_no: Number(result.session_no), batch_no: Number(result.batch_no),
+      code: `${result.session_no}-${result.batch_no}`, created_at: result.created_at,
+      total: Number(result.total),
     };
+  });
+
+/** Public, rate-limited operational call; it never creates a session or bill. */
+export const callWaiter = createServerFn({ method: "POST" })
+  .inputValidator((data: { token: string }) => ({ token: qrTokenSchema.parse(data.token) }))
+  .handler(async ({ data }) => {
+    const db = await admin();
+    const { data: rows, error } = await (db as any).rpc("create_waiter_call", { p_qr_token: data.token });
+    if (error || !rows?.[0]) throw new Error(error?.message ?? "WAITER_CALL_FAILED");
+    return rows[0] as { call_id: string; table_label: string; created_at: string; reused: boolean };
   });
 
 /** Bootstrap: the first signed-in account becomes the restaurant owner. */
