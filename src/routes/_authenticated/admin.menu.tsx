@@ -153,7 +153,8 @@ function MenuAdmin() {
                       return (
                         <li
                           key={item.id}
-                          className="plate grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl p-3"
+                          // className="plate grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl p-3"
+                          className="plate flex flex-col gap-3 rounded-xl p-3 sm:grid sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center"
                         >
                           {images[0] ? (
                             <img
