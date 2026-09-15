@@ -115,6 +115,21 @@ function Tag({ label }: { label: string }) {
 
 function CustomerMenu() {
   const { table: token } = Route.useParams();
+  // Validate token is a UUID; if not, show an error message instead of proceeding.
+  const isValidToken = /^[0-9a-f-]{36}$/i.test(token);
+  if (!isValidToken) {
+    return (
+      <main className="flex min-h-screen items-center justify-center px-6 text-center">
+        <div className="max-w-sm">
+          <p className="eyebrow">Zaytün</p>
+          <h1 className="mt-3 text-4xl font-display">Invalid table code</h1>
+          <p className="mt-3 text-sm text-muted-foreground">
+            The QR code you scanned does not contain a valid table identifier. Please ask a staff member for assistance.
+          </p>
+        </div>
+      </main>
+    );
+  }
   const queryClient = useQueryClient();
   const fetchMenu = useServerFn(getPublicMenu);
   const fetchContext = useServerFn(getTableContext);

@@ -58,13 +58,7 @@ function Landing() {
               "A candlelit dining room where Levantine warmth meets the spice roads of the subcontinent."}
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-            <Link
-              to="/menu/$table"
-              params={{ table: "table-07" }}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-7 text-sm font-medium text-primary-foreground"
-            >
-              <QrCode className="h-4 w-4" /> Try the table menu
-            </Link>
+            
           </div>
           <p className="mt-4 text-xs text-muted-foreground">
             Guests scan the code on their table — no app, no sign-up.

@@ -276,45 +276,93 @@ function ItemEditor({
   onMediaChanged: () => void;
   saving: boolean;
 }) {
-  const [imageUrl, setImageUrl] = useState("");
+  const [pendingAdds, setPendingAdds] = useState<File[]>([]);
+  const [pendingDeletes, setPendingDeletes] = useState<string[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
 
-  async function addImage() {
-    if (!draft.id) {
-      toast.error("Save the dish first, then add its photos.");
+  // Cleanup object URLs
+  useEffect(() => {
+    return () => {
+      previews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [previews]);
+
+  const existingMedia = media.filter((m) => !pendingDeletes.includes(m.id));
+  const totalImages = existingMedia.length + pendingAdds.length;
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Limit to 10 images total
+    if (totalImages >= 10) {
+      toast.error('Maximum 10 images per item');
       return;
     }
-    if (!/^https?:\/\/|^\//.test(imageUrl.trim())) {
-      toast.error("Please paste a valid image link.");
-      return;
-    }
-    const { error } = await supabase.from("menu_media").insert({
-      menu_item_id: draft.id,
-      url: imageUrl.trim(),
-      media_type: "image",
-      sort_order: media.length + 1,
+    setPendingAdds((prev) => [...prev, file]);
+    setPreviews((prev) => [...prev, URL.createObjectURL(file)]);
+    // Reset input
+    e.target.value = '';
+  };
+
+  const handleRemoveExisting = (id: string) => {
+    setPendingDeletes((prev) => [...prev, id]);
+  };
+
+  const handleRemovePending = (index: number) => {
+    setPendingAdds((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => {
+      const url = prev[index];
+      URL.revokeObjectURL(url);
+      return prev.filter((_, i) => i !== index);
     });
-    if (error) {
-      toast.error("That photo couldn't be added.");
+  };
+
+  const handleSave = async () => {
+    // First save dish details
+    await onSave();
+    // After dish saved, get its id (ensure draft has id now)
+    const itemId = draft.id;
+    if (!itemId) {
+      // Should not happen; reload to fetch id
+      onMediaChanged();
       return;
     }
-    setImageUrl("");
-    onMediaChanged();
-  }
-
-  async function removeImage(id: string) {
-    const { error } = await supabase.from("menu_media").delete().eq("id", id);
-    if (error) {
-      toast.error("That photo couldn't be removed.");
-      return;
+    // Delete marked images
+    if (pendingDeletes.length) {
+      const { error } = await supabase.from('menu_media').delete().in('id', pendingDeletes);
+      if (error) toast.error('Failed to delete some images');
     }
+    // Upload new images
+    if (pendingAdds.length) {
+      const uploads = pendingAdds.map(async (file, idx) => {
+        const ext = file.name.split('.').pop();
+        const path = `${itemId}/${Date.now()}_${Math.random().toString(36).substring(2)}.${ext}`;
+        const { error: uploadError } = await supabase.storage.from('menu-images').upload(path, file);
+        if (uploadError) throw uploadError;
+        const { data } = supabase.storage.from('menu-images').getPublicUrl(path);
+        return { url: data?.publicUrl, sort_order: existingMedia.length + idx + 1 };
+      });
+      try {
+        const rows = await Promise.all(uploads);
+        const { error: insertError } = await supabase.from('menu_media').insert(
+          rows.map((r) => ({
+            menu_item_id: itemId,
+            url: r.url,
+            media_type: 'image',
+            sort_order: r.sort_order,
+          })),
+        );
+        if (insertError) toast.error('Failed to save new images');
+      } catch (e: any) {
+        toast.error(e.message ?? 'Image upload failed');
+      }
+    }
+    // Reset local state
+    setPendingAdds([]);
+    setPendingDeletes([]);
+    setPreviews([]);
     onMediaChanged();
-  }
-
-  async function swapImage(a: MediaRow, b: MediaRow) {
-    await supabase.from("menu_media").update({ sort_order: b.sort_order }).eq("id", a.id);
-    await supabase.from("menu_media").update({ sort_order: a.sort_order }).eq("id", b.id);
-    onMediaChanged();
-  }
+  };
 
   const tags = draft.tags ?? [];
 
@@ -442,68 +490,30 @@ function ItemEditor({
           </label>
 
           <div>
-            <p className="eyebrow">Photos (first is the main image)</p>
-            {draft.id ? (
-              <>
-                <ul className="mt-2 space-y-2">
-                  {media.map((m, i) => (
-                    <li key={m.id} className="flex items-center gap-3">
-                      <img
-                        src={m.url}
-                        alt=""
-                        loading="lazy"
-                        className="h-12 w-12 rounded-lg object-cover"
-                      />
-                      <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-                        {m.url}
-                      </span>
-                      <button
-                        onClick={() => i > 0 && swapImage(m, media[i - 1]!)}
-                        disabled={i === 0}
-                        className="grid h-9 w-9 place-items-center rounded-lg border border-border disabled:opacity-40"
-                        aria-label="Move photo up"
-                      >
-                        <ArrowUp className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => i < media.length - 1 && swapImage(m, media[i + 1]!)}
-                        disabled={i === media.length - 1}
-                        className="grid h-9 w-9 place-items-center rounded-lg border border-border disabled:opacity-40"
-                        aria-label="Move photo down"
-                      >
-                        <ArrowDown className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => removeImage(m.id)}
-                        className="grid h-9 w-9 place-items-center rounded-lg border border-border text-destructive"
-                        aria-label="Remove photo"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-3 flex gap-2">
-                  <input
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="Paste an image link"
-                    aria-label="Image link"
-                    className="min-h-11 flex-1 rounded-lg border border-input bg-background px-3 text-sm"
-                  />
-                  <button
-                    onClick={addImage}
-                    className="min-h-11 rounded-lg border border-primary/60 px-4 text-sm text-primary"
-                  >
-                    Add
+            <div>
+              <p className="eyebrow">Photos (first is the main image)</p>
+              {existingMedia.map((m) => (
+                <div key={m.id} className="flex items-center gap-3 mb-2">
+                  <img src={m.url} alt="" loading="lazy" className="h-12 w-12 rounded-lg object-cover" />
+                  <button onClick={() => handleRemoveExisting(m.id)} className="text-destructive" aria-label="Remove photo">
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
-              </>
-            ) : (
-              <p className="mt-2 text-xs text-muted-foreground">
-                Save the dish first, then add its photos here.
-              </p>
-            )}
+              ))}
+              {previews.map((url, idx) => (
+                <div key={idx} className="flex items-center gap-3 mb-2">
+                  <img src={url} alt="" loading="lazy" className="h-12 w-12 rounded-lg object-cover" />
+                  <button onClick={() => handleRemovePending(idx)} className="text-destructive" aria-label="Remove photo">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+              {totalImages < 10 && (
+                <div className="mt-3 flex gap-2">
+                  <input type="file" accept="image/*" onChange={handleFileChange} className="flex-1" />
+                </div>
+              )}
+            </div>
           </div>
 
           <button
