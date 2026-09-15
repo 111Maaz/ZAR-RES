@@ -249,7 +249,7 @@ function MenuAdmin() {
           media={media.filter((m) => m.menu_item_id === editing.id)}
           onChange={setEditing}
           onClose={() => setEditing(null)}
-          onSave={() => saveItem.mutate(editing)}
+          onSave={() => saveItem.mutateAsync(editing)}
           onMediaChanged={refresh}
           saving={saveItem.isPending}
         />
