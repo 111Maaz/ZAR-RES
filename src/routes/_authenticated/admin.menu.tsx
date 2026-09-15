@@ -55,16 +55,17 @@ function MenuAdmin() {
       if (!payload.name) throw new Error("Please give the dish a name.");
       if (!payload.category_id) throw new Error("Please pick a category.");
       if (item.id) {
-        const { error } = await supabase.from("menu_items").update(payload).eq("id", item.id);
+        const { data, error } = await supabase.from("menu_items").update(payload).eq("id", item.id).select('id').single();
         if (error) throw new Error(error.message);
+        return data.id;
       } else {
-        const { error } = await supabase.from("menu_items").insert(payload);
+        const { data, error } = await supabase.from("menu_items").insert(payload).select('id').single();
         if (error) throw new Error(error.message);
+        return data.id;
       }
     },
     onSuccess: () => {
       toast.success("Dish saved");
-      setEditing(null);
       void refresh();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -272,7 +273,7 @@ function ItemEditor({
   media: MediaRow[];
   onChange: (next: Partial<ItemRow>) => void;
   onClose: () => void;
-  onSave: () => void;
+  onSave: () => Promise<string | undefined>;
   onMediaChanged: () => void;
   saving: boolean;
 }) {
@@ -318,31 +319,33 @@ function ItemEditor({
   };
 
   const handleSave = async () => {
-    // First save dish details
-    await onSave();
-    // After dish saved, get its id (ensure draft has id now)
-    const itemId = draft.id;
-    if (!itemId) {
-      // Should not happen; reload to fetch id
-      onMediaChanged();
-      return;
-    }
-    // Delete marked images
-    if (pendingDeletes.length) {
-      const { error } = await supabase.from('menu_media').delete().in('id', pendingDeletes);
-      if (error) toast.error('Failed to delete some images');
-    }
-    // Upload new images
-    if (pendingAdds.length) {
-      const uploads = pendingAdds.map(async (file, idx) => {
-        const ext = file.name.split('.').pop();
-        const path = `${itemId}/${Date.now()}_${Math.random().toString(36).substring(2)}.${ext}`;
-        const { error: uploadError } = await supabase.storage.from('menu-images').upload(path, file);
-        if (uploadError) throw uploadError;
-        const { data } = supabase.storage.from('menu-images').getPublicUrl(path);
-        return { url: data?.publicUrl, sort_order: existingMedia.length + idx + 1 };
-      });
-      try {
+    try {
+      // First save dish details and get the ID
+      const itemId = await onSave();
+      if (!itemId) {
+        // Should not happen, but fallback just in case
+        onMediaChanged();
+        onClose();
+        return;
+      }
+      
+      // Delete marked images
+      if (pendingDeletes.length) {
+        const { error } = await supabase.from('menu_media').delete().in('id', pendingDeletes);
+        if (error) toast.error('Failed to delete some images');
+      }
+      
+      // Upload new images
+      if (pendingAdds.length) {
+        const uploads = pendingAdds.map(async (file, idx) => {
+          const ext = file.name.split('.').pop();
+          const path = `${itemId}/${Date.now()}_${Math.random().toString(36).substring(2)}.${ext}`;
+          const { error: uploadError } = await supabase.storage.from('menu-images').upload(path, file);
+          if (uploadError) throw uploadError;
+          const { data } = supabase.storage.from('menu-images').getPublicUrl(path);
+          return { url: data?.publicUrl, sort_order: existingMedia.length + idx + 1 };
+        });
+        
         const rows = await Promise.all(uploads);
         const { error: insertError } = await supabase.from('menu_media').insert(
           rows.map((r) => ({
@@ -353,15 +356,20 @@ function ItemEditor({
           })),
         );
         if (insertError) toast.error('Failed to save new images');
-      } catch (e: any) {
+      }
+      
+      // Reset local state and refresh
+      setPendingAdds([]);
+      setPendingDeletes([]);
+      setPreviews([]);
+      onMediaChanged();
+      onClose(); // Close the modal only after images are uploaded successfully
+    } catch (e: any) {
+      // The saveItem mutation already toasts errors, but we can catch upload errors here
+      if (e.message !== "Failed to save dish") {
         toast.error(e.message ?? 'Image upload failed');
       }
     }
-    // Reset local state
-    setPendingAdds([]);
-    setPendingDeletes([]);
-    setPreviews([]);
-    onMediaChanged();
   };
 
   const tags = draft.tags ?? [];
@@ -517,7 +525,7 @@ function ItemEditor({
           </div>
 
           <button
-            onClick={onSave}
+            onClick={handleSave}
             disabled={saving}
             className="min-h-12 w-full rounded-lg bg-primary text-sm font-medium text-primary-foreground"
           >
