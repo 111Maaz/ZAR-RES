@@ -81,6 +81,16 @@ async function admin() {
   return supabaseAdmin;
 }
 
+/** Anon Supabase client for calling SECURITY DEFINER RPCs that are GRANT'd to anon.
+ *  Uses the public env vars (no service role needed). */
+async function anonDb() {
+  const { createClient } = await import("@supabase/supabase-js");
+  const url = process.env["SUPABASE_URL"];
+  const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
+  if (!url || !key) throw new Error("Missing Supabase public env vars (SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY)");
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+}
+
 /** Public menu: categories, items, item-specific media. */
 export const getPublicMenu = createServerFn({ method: "GET" }).handler(async () => {
   const db = await admin();
@@ -231,7 +241,7 @@ const placeOrderSchema = z.object({
 export const placeOrder = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => placeOrderSchema.parse(data))
   .handler(async ({ data }) => {
-    const db = await admin();
+    const db = await anonDb();
     const { data: rows, error } = await (db as any).rpc("place_table_order", {
       p_qr_token: data.token,
       p_items: data.items,
@@ -251,7 +261,7 @@ export const callWaiter = createServerFn({ method: "POST" })
   .inputValidator((data: { token: string }) => ({ token: qrTokenSchema.parse(data.token) }))
   .handler(async ({ data }) => {
     try {
-      const db = await admin();
+      const db = await anonDb();
       const { data: rows, error } = await (db as any).rpc("create_waiter_call", { p_qr_token: data.token });
       if (error || !rows?.[0]) {
         console.error("RPC create_waiter_call failed:", error);
