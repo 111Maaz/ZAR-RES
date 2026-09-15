@@ -250,10 +250,18 @@ export const placeOrder = createServerFn({ method: "POST" })
 export const callWaiter = createServerFn({ method: "POST" })
   .inputValidator((data: { token: string }) => ({ token: qrTokenSchema.parse(data.token) }))
   .handler(async ({ data }) => {
-    const db = await admin();
-    const { data: rows, error } = await (db as any).rpc("create_waiter_call", { p_qr_token: data.token });
-    if (error || !rows?.[0]) throw new Error(error?.message ?? "WAITER_CALL_FAILED");
-    return rows[0] as { call_id: string; table_label: string; created_at: string; reused: boolean };
+    try {
+      const db = await admin();
+      const { data: rows, error } = await (db as any).rpc("create_waiter_call", { p_qr_token: data.token });
+      if (error || !rows?.[0]) {
+        console.error("RPC create_waiter_call failed:", error);
+        throw new Error(error?.message ?? "WAITER_CALL_FAILED");
+      }
+      return rows[0] as { call_id: string; table_label: string; created_at: string; reused: boolean };
+    } catch (err: any) {
+      console.error("callWaiter error:", err);
+      throw err;
+    }
   });
 
 /** Bootstrap: the first signed-in account becomes the restaurant owner. */
