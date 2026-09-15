@@ -90,7 +90,15 @@ function TableSessionPage() {
       void queryClient.invalidateQueries({ queryKey: ["admin-history"] });
       navigate({ to: "/admin/tables" });
     },
-    onError: () => toast.error("Checkout failed. Please try again."),
+    // onError: () => toast.error("Checkout failed. Please try again."),
+    onError: (error) => {
+      console.error("Checkout failed:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+        : "Checkout failed. Please try again.",
+      );
+    },
   });
 
   const table = tableQuery.data;
