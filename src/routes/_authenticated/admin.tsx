@@ -52,7 +52,7 @@ const NAV = [
   { to: "/admin/categories", label: "Categories", icon: ListTree, exact: false },
   { to: "/admin/history", label: "History", icon: History, exact: false },
   { to: "/admin/profile", label: "Profile", icon: UserCog, exact: false },
-  { to: "/admin/settings", label: "Settings", icon: Settings, exact: false },
+  // { to: "/admin/settings", label: "Settings", icon: Settings, exact: false },
 ] as const;
 
 function AdminLayout() {
