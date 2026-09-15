@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowDown, ArrowUp, Image as ImageIcon, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
