@@ -27,12 +27,12 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Restaurant dashboard — Zaytün" },
+      { title: "Restaurant dashboard — TANDO'S" },
       {
         name: "description",
         content: "Live order queue, table sessions, running bills and menu management.",
       },
-      { property: "og:title", content: "Restaurant dashboard — Zaytün" },
+      { property: "og:title", content: "Restaurant dashboard — TANDO'S" },
       {
         property: "og:description",
         content: "Live order queue, table sessions, running bills and menu management.",
@@ -116,7 +116,7 @@ function AdminLayout() {
     <div className="min-h-screen bg-background lg:grid lg:grid-cols-[15rem_minmax(0,1fr)]">
       <aside className="hidden border-r border-border bg-sidebar lg:flex lg:flex-col">
         <div className="border-b border-sidebar-border px-5 py-5">
-          <p className="eyebrow">Zaytün</p>
+          <p className="eyebrow">TANDO'S</p>
           <p className="font-display text-xl">Staff console</p>
         </div>
         <nav className="flex-1 space-y-1 p-3">
@@ -153,7 +153,7 @@ function AdminLayout() {
         <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur lg:hidden">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3">
             <div className="min-w-0">
-              <p className="eyebrow">Zaytün</p>
+              <p className="eyebrow">TANDO'S</p>
               <p className="truncate font-display text-lg">Staff console</p>
             </div>
             <button

@@ -17,7 +17,7 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <p className="eyebrow">Zaytün</p>
+        <p className="eyebrow">TANDO'S</p>
         <h1 className="mt-3 text-5xl font-display text-foreground">Page not found</h1>
         <p className="mt-3 text-sm text-muted-foreground">
           This link doesn't exist. If you scanned a table code, please ask a member of
@@ -79,11 +79,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Zaytün Restaurant — Scan, Browse, Order" },
+      { title: "TANDO'S Restaurant — Scan, Browse, Order" },
       {
         name: "description",
         content:
-          "Zaytün: flavours beyond borders. Scan your table code to browse the menu and order.",
+          "TANDO'S: flavours beyond borders. Scan your table code to browse the menu and order.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

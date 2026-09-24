@@ -32,9 +32,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/menu/$table")({
   head: ({ params }) => {
     const label = params.table.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-    const title = `Order at Zaytün — ${label}`;
+    const title = `Order at TANDO'S — ${label}`;
     const description =
-      "Browse the Zaytün menu, view dishes and place your order straight from your table.";
+      "Browse the TANDO'S menu, view dishes and place your order straight from your table.";
     return {
       meta: [
         { title },
@@ -121,7 +121,7 @@ function CustomerMenu() {
     return (
       <main className="flex min-h-screen items-center justify-center px-6 text-center">
         <div className="max-w-sm">
-          <p className="eyebrow">Zaytün</p>
+          <p className="eyebrow">TANDO'S</p>
           <h1 className="mt-3 text-4xl font-display">Invalid table code</h1>
           <p className="mt-3 text-sm text-muted-foreground">
             The QR code you scanned does not contain a valid table identifier. Please ask a staff member for assistance.
@@ -217,7 +217,7 @@ function CustomerMenu() {
     return (
       <main className="flex min-h-screen items-center justify-center px-6 text-center">
         <div className="max-w-sm">
-          <p className="eyebrow">Zaytün</p>
+          <p className="eyebrow">TANDO'S</p>
           <h1 className="mt-3 text-4xl font-display">Table not recognised</h1>
           <p className="mt-3 text-sm text-muted-foreground">
             The code you scanned isn't linked to a table. Please ask a member of staff to
@@ -244,7 +244,7 @@ function CustomerMenu() {
       <header className="relative isolate overflow-hidden">
         <img
           src={settings?.cover_image_url ?? "/images/hero.jpg"}
-          alt={`${settings?.name ?? "Zaytün"} dining room`}
+          alt={`${settings?.name ?? "TANDO'S"} dining room`}
           width={1600}
           height={1008}
           className="absolute inset-0 -z-10 h-full w-full object-cover opacity-45"
@@ -253,7 +253,7 @@ function CustomerMenu() {
         <div className="mx-auto max-w-5xl px-5 pb-8 pt-12 text-center sm:pt-16">
           <p className="eyebrow">{tableLabel || "Your table"}</p>
           <h1 className="mt-3 text-5xl leading-none font-display tracking-wide sm:text-6xl">
-            {settings?.name ?? "Zaytün"}
+            {settings?.name ?? "TANDO'S"}
           </h1>
           <p className="mt-2 text-xs uppercase tracking-[0.32em] text-primary">
             {settings?.tagline ?? "Flavours Beyond Borders"}

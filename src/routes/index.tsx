@@ -7,7 +7,7 @@ import { getPublicMenu } from "@/lib/ordering.functions";
 
 export const Route = createFileRoute("/")({
   head: () => {
-    const title = "Zaytün Restaurant — Flavours Beyond Borders";
+    const title = "TANDO'S Restaurant — Flavours Beyond Borders";
     const description =
       "Candlelit dining, slow-cooked biryanis and charcoal grills. Scan the code on your table to browse the menu and order.";
     return {
@@ -38,7 +38,7 @@ function Landing() {
       <section className="relative isolate overflow-hidden">
         <img
           src={settings?.cover_image_url ?? "/images/hero.jpg"}
-          alt="Zaytün dining room at night"
+          alt="TANDO'S dining room at night"
           width={1600}
           height={1008}
           className="absolute inset-0 -z-10 h-full w-full object-cover opacity-50"
@@ -47,7 +47,7 @@ function Landing() {
         <div className="mx-auto flex min-h-[85vh] max-w-4xl flex-col items-center justify-center px-6 text-center">
           <p className="eyebrow">Est. 2019 · Mumbai</p>
           <h1 className="mt-4 text-6xl leading-none font-display tracking-wide sm:text-7xl">
-            {settings?.name ?? "Zaytün"}
+            {settings?.name ?? "TANDO'S"}
           </h1>
           <p className="mt-3 text-xs uppercase tracking-[0.34em] text-primary">
             {settings?.tagline ?? "Flavours Beyond Borders"}

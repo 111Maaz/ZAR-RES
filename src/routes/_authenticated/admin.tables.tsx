@@ -220,7 +220,7 @@ function QrDialog({ table, onClose }: { table: AdminTableRow; onClose: () => voi
     if (!win || !dataUrl) return;
     win.document.write(
       `<html><head><title>${table.label} QR</title></head><body style="font-family:Georgia,serif;text-align:center;padding:48px">
-       <h1 style="letter-spacing:.2em;text-transform:uppercase;font-size:14px">Zaytün Restaurant</h1>
+       <h1 style="letter-spacing:.2em;text-transform:uppercase;font-size:14px">TANDO'S Restaurant</h1>
        <h2 style="font-size:34px;margin:8px 0 24px">${table.label}</h2>
        <img src="${dataUrl}" style="width:340px;height:340px" alt="QR code" />
        <p style="margin-top:24px;font-size:13px">Scan to view the menu and order</p>

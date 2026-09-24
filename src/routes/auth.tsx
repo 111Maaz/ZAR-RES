@@ -11,15 +11,15 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Staff sign in — Zaytün" },
+      { title: "Staff sign in — TANDO'S" },
       {
         name: "description",
-        content: "Owner and staff sign in for the Zaytün ordering dashboard.",
+        content: "Owner and staff sign in for the TANDO'S ordering dashboard.",
       },
-      { property: "og:title", content: "Staff sign in — Zaytün" },
+      { property: "og:title", content: "Staff sign in — TANDO'S" },
       {
         property: "og:description",
-        content: "Owner and staff sign in for the Zaytün ordering dashboard.",
+        content: "Owner and staff sign in for the TANDO'S ordering dashboard.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -85,7 +85,7 @@ function AuthPage() {
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-full border border-primary text-primary">
             <Lock className="h-5 w-5" />
           </div>
-          <h1 className="mt-5 text-4xl font-display">Zaytün Staff</h1>
+          <h1 className="mt-5 text-4xl font-display">TANDO'S Staff</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {mode === "signin"
               ? "Sign in to manage orders, tables and the menu."

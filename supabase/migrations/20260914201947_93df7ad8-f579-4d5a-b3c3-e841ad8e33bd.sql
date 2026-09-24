@@ -172,8 +172,8 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.table_sessions;
 
 -- seed
 INSERT INTO public.restaurant_settings (id, name, tagline, cover_image_url, about, address, opening_hours, instagram_url, phone)
-VALUES (true, 'Zaytün', 'Flavours Beyond Borders', '/images/hero.jpg',
-  'Zaytün is a candlelit dining room where Levantine warmth meets the spice roads of the subcontinent. Slow-cooked biryanis, charcoal grills and mezze made fresh every morning.',
+VALUES (true, 'TANDO'S', 'Flavours Beyond Borders', '/images/hero.jpg',
+  'TANDO'S is a candlelit dining room where Levantine warmth meets the spice roads of the subcontinent. Slow-cooked biryanis, charcoal grills and mezze made fresh every morning.',
   '14 Olive Court, Bandra West, Mumbai 400050', 'Daily · 12:00 PM – 11:30 PM', 'https://instagram.com', '+91 98200 00000');
 
 INSERT INTO public.restaurant_tables (label, slug, sort_order)
@@ -189,7 +189,7 @@ INSERT INTO public.categories (id, name, subtitle, image_url, sort_order) VALUES
   ('11111111-1111-4111-8111-000000000006', 'Beverages', 'Refresh & Rejuvenate', '/images/fresh-lime.jpg', 6);
 
 INSERT INTO public.menu_items (id, category_id, name, description, price, tags, sort_order, reel_url) VALUES
- ('22222222-2222-4222-8222-000000000001','11111111-1111-4111-8111-000000000001','Zaytün Mezze Platter','Hummus, muhammara, labneh and warm pita baked to order.',320,'{Bestseller,Veg}',1,NULL),
+ ('22222222-2222-4222-8222-000000000001','11111111-1111-4111-8111-000000000001','TANDO'S Mezze Platter','Hummus, muhammara, labneh and warm pita baked to order.',320,'{Bestseller,Veg}',1,NULL),
  ('22222222-2222-4222-8222-000000000002','11111111-1111-4111-8111-000000000001','Chicken Malai Tikka','Cream and cardamom marinated chicken, charcoal grilled.',380,'{"Chef''s Special","Non-Veg"}',2,NULL),
  ('22222222-2222-4222-8222-000000000003','11111111-1111-4111-8111-000000000002','Chicken Biryani','Aromatic basmati rice slow cooked with tender chicken, saffron and herbs.',240,'{Bestseller,"Non-Veg",Popular}',1,'https://www.instagram.com/reel/CxYzExample/'),
  ('22222222-2222-4222-8222-000000000004','11111111-1111-4111-8111-000000000002','Mutton Biryani','Slow cooked mutton layered with rich spices and fried onion.',320,'{"Non-Veg",Spicy}',2,NULL),
